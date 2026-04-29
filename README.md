@@ -11,6 +11,7 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/github/check-runs/rosslh/webofdevs.com/main?style=flat&label=Checks" alt="GitHub branch check runs">
   <img src="https://img.shields.io/uptimerobot/status/m792388136-54c69a8ccd79b274ed4f8105?up_message=online&style=flat&label=Status" alt="Uptime Robot status">
   <img src="https://img.shields.io/uptimerobot/ratio/m792388136-54c69a8ccd79b274ed4f8105?style=flat&label=Uptime%20(1mo)" alt="Uptime Robot ratio (30 days)">
   <a href="https://mapledeploy.ca"><img src="https://mapledeploy.ca/api/badge/shields" alt="Hosted in Canada with MapleDeploy"></a>
@@ -26,9 +27,9 @@ Signed-in users can **favorite** the sites they like to keep a personal collecti
 
 The frontend is a [SvelteKit](https://github.com/sveltejs/kit) app written in [TypeScript](https://github.com/microsoft/TypeScript) and styled with [Tailwind CSS](https://github.com/tailwindlabs/tailwindcss). End-to-end tests run with [Playwright](https://github.com/microsoft/playwright).
 
-The backend is a [NestJS](https://github.com/nestjs/nest) service that exposes a REST API for entries, favorites, reports, and authentication. [Knex](https://github.com/knex/knex) manages PostgreSQL schema migrations and queries. Background jobs — most notably the GitHub scraper that refreshes user metadata through GitHub's REST API — run on a [BullMQ](https://github.com/taskforcesh/bullmq) queue backed by Redis, scheduled with `@nestjs/schedule`.
+The backend is a [NestJS](https://github.com/nestjs/nest) service that exposes a REST API for entries, favorites, reports, and authentication. [Knex](https://github.com/knex/knex) manages PostgreSQL schema migrations and queries. Background jobs (most notably the GitHub scraper that refreshes user metadata through GitHub's REST API) run on a [BullMQ](https://github.com/taskforcesh/bullmq) queue backed by Redis, scheduled with `@nestjs/schedule`.
 
-Authentication uses GitHub OAuth, with short-lived JWT access tokens and rotating refresh tokens. The NestJS API returns the tokens in the JSON response to the SvelteKit server (a trusted backend-for-frontend), which sets them as HttpOnly cookies on the browser response — the refresh token is never exposed to client-side JavaScript. Rate limiting (`@nestjs/throttler`), `helmet`, and standard CORS protections are applied at the API boundary.
+Authentication uses GitHub OAuth, with short-lived JWT access tokens and rotating refresh tokens. The NestJS API returns the tokens in the JSON response to the SvelteKit server (a trusted backend-for-frontend), which sets them as HttpOnly cookies on the browser response, so the refresh token is never exposed to client-side JavaScript. Rate limiting (`@nestjs/throttler`), `helmet`, and standard CORS protections are applied at the API boundary.
 
 ## Development
 

@@ -57,9 +57,10 @@ export class ScraperService {
     };
     const userResponse = await fetch(
       `https://api.github.com/users/${encodeURIComponent(githubUsernameLower)}`,
-      { headers: githubHeaders },
+      { headers: githubHeaders, signal: AbortSignal.timeout(10_000) },
     );
     console.log('🟢 github:', githubUsernameLower, userResponse.status);
+    this.assertGithubRateLimitOk(userResponse);
 
     if (!userResponse.ok) {
       return null;
@@ -76,14 +77,25 @@ export class ScraperService {
         `https://api.github.com/users/${encodeURIComponent(
           githubUsernameLower,
         )}/repos?per_page=${pageSize}&page=${page}`,
-        { headers: githubHeaders },
+        { headers: githubHeaders, signal: AbortSignal.timeout(10_000) },
       );
+      this.assertGithubRateLimitOk(reposResponse);
       if (!reposResponse.ok) {
         break;
       }
       const pageRepos = (await reposResponse.json()) as RepoData[];
       repos.push(...pageRepos);
       if (pageRepos.length < pageSize) {
+        break;
+      }
+      const remainingHeader = reposResponse.headers.get(
+        'x-ratelimit-remaining',
+      );
+      const remaining = remainingHeader ? Number(remainingHeader) : NaN;
+      if (!Number.isNaN(remaining) && remaining < 100) {
+        console.warn(
+          `🟡 github rate-limit budget low (${remaining}); aborting repo pagination for ${githubUsernameLower}`,
+        );
         break;
       }
     }
@@ -145,7 +157,7 @@ export class ScraperService {
 
     // reject if wikipedia article exists for domain
     try {
-      await wiki.page(domainName);
+      await this.withTimeout(wiki.page(domainName), 10_000, 'wiki.page');
       console.log('fail 5', nameOfUser, website);
       return false;
     } catch {
@@ -246,7 +258,7 @@ export class ScraperService {
         user_removed: false,
       });
 
-    for (const user of users) {
+    await this.runWithConcurrency(users, 3, async (user) => {
       console.log('🟡 checking', user.github_username);
       const websiteIsValid = await this.validateWebsite(
         user.website_url,
@@ -260,7 +272,7 @@ export class ScraperService {
           status: 'invalid_website',
         });
       }
-    }
+    });
     console.log('🟢 checked website validity');
   }
 
@@ -270,7 +282,7 @@ export class ScraperService {
     });
     // .orWhere({ status: 'requires_review' });
     // .orWhere({ status: 'rejected' });
-    for (const user of users) {
+    await this.runWithConcurrency(users, 3, async (user) => {
       try {
         console.log('🔷 getting data for ' + user.github_username);
         const userData = await this.getGithubUserData(user.github_username);
@@ -287,18 +299,77 @@ export class ScraperService {
         console.error('🔴 failed updating', user.github_username);
         console.error(e);
       }
-    }
+    });
   }
 
   @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
   async monthly() {
     console.log('🔷 cron monthly');
-    await this.checkExistingWebsiteValidity('requires_review');
+    try {
+      await this.checkExistingWebsiteValidity('requires_review');
+    } catch (err) {
+      console.error('monthly cron failed', err);
+    }
   }
 
   @Cron(CronExpression.EVERY_WEEK)
   async weekly() {
     console.log('🔷 cron weekly');
-    await this.updateGithubData();
+    try {
+      await this.updateGithubData();
+    } catch (err) {
+      console.error('weekly cron failed', err);
+    }
+  }
+
+  private withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+    return Promise.race([
+      p,
+      new Promise<T>((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`Timeout: ${label} took longer than ${ms}ms`)),
+          ms,
+        ),
+      ),
+    ]);
+  }
+
+  private assertGithubRateLimitOk(response: Response): void {
+    const remainingHeader = response.headers.get('x-ratelimit-remaining');
+    const resetHeader = response.headers.get('x-ratelimit-reset');
+    const isRateLimitedStatus =
+      response.status === 403 || response.status === 429;
+    const remainingExhausted =
+      remainingHeader === '0' || remainingHeader === null;
+    if (isRateLimitedStatus && remainingExhausted) {
+      const resetTimestamp = resetHeader
+        ? new Date(Number(resetHeader) * 1000).toISOString()
+        : 'unknown';
+      throw new Error(
+        `GitHub rate limit exhausted; reset at ${resetTimestamp}`,
+      );
+    }
+  }
+
+  private async runWithConcurrency<T>(
+    items: T[],
+    limit: number,
+    worker: (item: T) => Promise<void>,
+  ): Promise<void> {
+    let cursor = 0;
+    const runners = Array.from(
+      { length: Math.min(limit, items.length) },
+      async () => {
+        while (cursor < items.length) {
+          const i = cursor++;
+          try {
+            await worker(items[i]);
+          } catch (err) {
+            console.error('cron worker iteration failed', err);
+          }
+        }
+      },
+    );
+    await Promise.all(runners);
   }
 }

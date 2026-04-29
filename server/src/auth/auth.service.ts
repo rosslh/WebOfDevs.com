@@ -10,6 +10,7 @@ import { randomBytes, createHash } from 'crypto';
 
 const REFRESH_TOKEN_BYTES = 48;
 const REFRESH_TOKEN_TTL_DAYS = 30;
+const GITHUB_DATA_FRESH_HOURS = 24;
 
 export interface AuthUser {
   id: number;
@@ -85,6 +86,7 @@ export class AuthService {
         Authorization: `Bearer ${accessToken}`,
         'X-GitHub-Api-Version': '2022-11-28',
       },
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (!githubUserResponse.ok) {
@@ -99,8 +101,28 @@ export class AuthService {
       })
       .first();
 
-    const { github_num_stars, github_programming_languages } =
-      await this.scraperService.getGithubUserData(githubUsernameLower);
+    const isFresh =
+      user?.last_authenticated_at &&
+      Date.now() - new Date(user.last_authenticated_at).getTime() <
+        GITHUB_DATA_FRESH_HOURS * 60 * 60 * 1000;
+
+    let github_num_stars: number;
+    let github_programming_languages: string[];
+    if (isFresh) {
+      github_num_stars = user.github_num_stars;
+      const cachedLanguages = await this.knex('github_programming_language')
+        .join(
+          'user_github_programming_languages',
+          'github_programming_language.id',
+          'user_github_programming_languages.programming_language_id',
+        )
+        .where({ 'user_github_programming_languages.user_id': user.id })
+        .pluck('github_programming_language.name');
+      github_programming_languages = cachedLanguages;
+    } else {
+      ({ github_num_stars, github_programming_languages } =
+        await this.scraperService.getGithubUserData(githubUsernameLower));
+    }
 
     const userData = {
       github_username: githubUsernameLower,

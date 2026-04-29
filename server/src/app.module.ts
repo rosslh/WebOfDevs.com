@@ -40,7 +40,7 @@ import { PassportModule } from '@nestjs/passport';
     BullModule.registerQueue({ name: 'message-queue' }),
 
     ScheduleModule.forRoot(),
-    HttpModule,
+    HttpModule.register({ timeout: 10_000, maxRedirects: 5 }),
 
     ThrottlerModule.forRoot([
       {

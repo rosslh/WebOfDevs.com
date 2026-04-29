@@ -35,7 +35,7 @@
         class="w-full flex-grow bg-white border border-slate-300 rounded-bl-md rounded-br-md"
         src={selected.website_url}
         title=""
-        sandbox="allow-forms allow-modals allow-popups allow-scripts allow-downloads"
+        sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-downloads"
       ></iframe>
     {/key}
   {:else}

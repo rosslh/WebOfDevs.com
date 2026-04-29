@@ -43,6 +43,9 @@ export const production = {
   pool: {
     min: 2,
     max: 12,
+    acquireTimeoutMillis: 10_000,
+    idleTimeoutMillis: 30_000,
+    reapIntervalMillis: 1_000,
   },
   migrations: {
     tableName: 'knex_migrations',
