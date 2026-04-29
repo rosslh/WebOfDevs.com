@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  h1, h2, h3, h4 {
+    @apply font-bold;
+  }
+  a {
+    @apply text-blue-600;
+  }
+  *:focus-visible {
+    /* @apply outline-2 outline-slate-400 !important; */
+    outline: 2px solid #94a3b8;
+  }
+
+  .gradient-link {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-400;
+    @apply font-medium;
+  }
+
+  .gradient-link:hover {
+    @apply bg-gradient-to-r from-indigo-500 to-pink-500;
+  }
+}
