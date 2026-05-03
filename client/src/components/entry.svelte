@@ -87,6 +87,7 @@
   <img
     class="md:w-9 md:h-9 w-10 h-10 mr-2.5 border border-slate-200 rounded-full"
     src={entry.profile_image_url}
+    loading="lazy"
     alt=""
   />
   <div class="flex flex-col">
