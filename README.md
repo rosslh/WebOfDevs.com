@@ -12,8 +12,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/github/check-runs/rosslh/webofdevs.com/main?style=flat&label=Checks" alt="GitHub branch check runs">
-  <img src="https://img.shields.io/uptimerobot/status/m792388136-54c69a8ccd79b274ed4f8105?up_message=online&style=flat&label=Status" alt="Uptime Robot status">
-  <img src="https://img.shields.io/uptimerobot/ratio/m792388136-54c69a8ccd79b274ed4f8105?style=flat&label=Uptime%20(1mo)" alt="Uptime Robot ratio (30 days)">
+  <img src="https://img.shields.io/uptimerobot/status/m792419054-6bfcda1ea164377713c64d65?up_message=online&style=flat&label=Status" alt="Uptime Robot status">
+  <img src="https://img.shields.io/uptimerobot/ratio/m792419054-6bfcda1ea164377713c64d65?style=flat&label=Uptime%20(1mo)" alt="Uptime Robot ratio (30 days)">
   <a href="https://mapledeploy.ca"><img src="https://mapledeploy.ca/api/badge/shields" alt="Hosted in Canada with MapleDeploy"></a>
 </p>
 
