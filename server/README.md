@@ -33,7 +33,7 @@ The compose file starts Postgres on `localhost:5434` and Redis on `localhost:638
 ```bash
 npm run start:dev   # watch mode, default port 9000 (matches client VITE_API_URL)
 npm run build       # compile to dist/
-npm start           # runs migrations then starts the compiled server
+npm start           # web/default: runs migrations then starts; worker: starts without migrations
 npm test            # unit tests
 npm run test:e2e    # end-to-end tests
 ```
@@ -49,6 +49,7 @@ Required (see `.env.template`):
 - `GITHUB_OCTOKIT_TOKEN` — token used by the scraper to call the GitHub API
 - `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`, `REDIS_PASSWORD` — BullMQ queue backend
 - `CORS_ORIGINS` — comma-separated list of allowed origins (e.g. `http://localhost:3000`)
+- `ENABLE_SCHEDULED_SCRAPER` — set to `"true"` only on the worker service that should run cron jobs and the BullMQ scraper worker
 
 ## Migrations
 
@@ -59,7 +60,7 @@ npm run build
 npm run migrate     # knex migrate:latest against dist/knexfile.js
 ```
 
-`npm start` runs `npm run migrate` automatically before booting the server.
+`npm start` runs `npm run migrate` automatically before booting the web/default service. When `ENABLE_SCHEDULED_SCRAPER="true"`, the process is treated as the worker and starts without running migrations.
 
 ## How it fits
 

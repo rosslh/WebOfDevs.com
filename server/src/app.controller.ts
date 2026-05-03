@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard, JwtOptionalAuthGuard } from './auth/jwt-auth.guard';
 import { AppService } from './app.service';
-import { ScraperService } from './scraper.service';
 
 export interface AuthedUser {
   id: number;
@@ -40,10 +39,12 @@ const REVIEW_STATUSES: ReviewStatus[] = [
 
 @Controller()
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
-    private readonly scraperService: ScraperService,
-  ) {}
+  constructor(private readonly appService: AppService) {}
+
+  @Get('/health')
+  getHealth() {
+    return { status: 'ok' };
+  }
 
   @Get('/programming-languages')
   async getProgrammingLanguages() {
@@ -71,12 +72,6 @@ export class AppController {
     if (!data.website) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
-    // return this.scraperService.getUserWebsite({
-    //   githubUsername: req.user.github_username,
-    //   manualWebsiteUrl: data.website,
-    //   isUserSubmission: true,
-    //   userRemoved: false,
-    // });
     return await this.appService.sendMessage('create-message', {
       manualWebsiteUrl: data.website,
       githubUsername: req.user.github_username,

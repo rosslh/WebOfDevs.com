@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectKnex, Knex } from 'nestjs-knex';
 import { AppService } from '../app.service';
 import { JwtService } from '@nestjs/jwt';
-import { ScraperService } from 'src/scraper.service';
+import { GithubService } from '../github.service';
 import { randomBytes, createHash } from 'crypto';
 
 const REFRESH_TOKEN_BYTES = 48;
@@ -48,7 +48,7 @@ export class AuthService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly appService: AppService,
-    private readonly scraperService: ScraperService,
+    private readonly githubService: GithubService,
     private jwtService: JwtService,
   ) {}
 
@@ -121,7 +121,7 @@ export class AuthService {
       github_programming_languages = cachedLanguages;
     } else {
       ({ github_num_stars, github_programming_languages } =
-        await this.scraperService.getGithubUserData(githubUsernameLower));
+        await this.githubService.getGithubUserData(githubUsernameLower));
     }
 
     const userData = {

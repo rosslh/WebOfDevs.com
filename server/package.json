@@ -11,7 +11,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "migrate": "knex migrate:latest --knexfile dist/knexfile.js --env production",
-    "start": "npm run migrate && node dist/src/main",
+    "start": "if [ \"$ENABLE_SCHEDULED_SCRAPER\" = \"true\" ]; then node dist/src/main; else npm run migrate && node dist/src/main; fi",
     "start:debug": "nest start --debug --watch",
     "start:dev": "nest start --watch",
     "dev": "nest start --watch",

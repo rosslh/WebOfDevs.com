@@ -10,6 +10,7 @@ import { production } from '../knexfile.js';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { GithubService } from './github.service';
 import { MessageConsumer } from './message.consumer';
 import { ScraperService } from './scraper.service.js';
 
@@ -18,6 +19,12 @@ import { AuthController } from './auth/auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
+
+const enableScheduledScraper = process.env.ENABLE_SCHEDULED_SCRAPER === 'true';
+const scraperImports = enableScheduledScraper ? [ScheduleModule.forRoot()] : [];
+const scraperProviders = enableScheduledScraper
+  ? [MessageConsumer, ScraperService]
+  : [];
 
 @Module({
   imports: [
@@ -39,8 +46,8 @@ import { PassportModule } from '@nestjs/passport';
     }),
     BullModule.registerQueue({ name: 'message-queue' }),
 
-    ScheduleModule.forRoot(),
     HttpModule.register({ timeout: 10_000, maxRedirects: 5 }),
+    ...scraperImports,
 
     ThrottlerModule.forRoot([
       {
@@ -68,8 +75,8 @@ import { PassportModule } from '@nestjs/passport';
   controllers: [AppController, AuthController],
   providers: [
     AppService,
-    MessageConsumer,
-    ScraperService,
+    GithubService,
+    ...scraperProviders,
     AuthService,
     JwtStrategy,
     {
