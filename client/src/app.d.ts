@@ -26,7 +26,7 @@ export interface EntryData {
   github_num_followers: number;
   github_num_stars: number;
   is_user_submitted: boolean;
-  name: string;
+  name: string | null;
   created_at: string;
   profile_image_url: string;
   reloadKey: boolean;

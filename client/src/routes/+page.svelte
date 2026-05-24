@@ -68,11 +68,24 @@
     return typeof value === "string" ? value.toLocaleLowerCase() : value;
   };
 
-  const compareByNameAndId = (a: EntryData, b: EntryData) =>
-    a.name.localeCompare(b.name, undefined, {
+  const compareByNameAndId = (a: EntryData, b: EntryData) => {
+    if (!a.name && !b.name) {
+      return a.id - b.id;
+    }
+
+    if (!a.name) {
+      return 1;
+    }
+
+    if (!b.name) {
+      return -1;
+    }
+
+    return a.name.localeCompare(b.name, undefined, {
       numeric: true,
       sensitivity: "base",
     }) || a.id - b.id;
+  };
 
   const compareEntries = (
     a: EntryData,
